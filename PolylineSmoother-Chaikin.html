@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Graph Smoother</title>
+    <style>
+        body{font-family: Courier New; font-size: 25px;}
+        table{border: 3px solid orangered;}
+    </style>
+    <script>
+
+        const point={
+            x: 0,
+            y: 0,
+            getMidpoint(a, b){
+                let v = Object.create(point);
+                v.x = (a.x+b.x)/2;
+                v.y = (a.y+b.y)/2;
+                return v;
+            }
+        }
+
+        var temp = Object.create(point);
+        var p1 = Object.create(point);
+        var p2 = Object.create(point);
+        var p3 = Object.create(point);
+        var p4 = Object.create(point);
+        var mid = Object.create(point);
+        var i=0, s=0;
+
+        function clicked(evt){
+            var e = evt.target;
+            var dim = e.getBoundingClientRect();
+            var x = evt.clientX - dim.left;
+            var y = evt.clientY - dim.top;
+            if(temp.x==0 && temp.y==0){
+                temp.x=x;
+                temp.y=y;
+            }
+            else{
+                window.document.getElementById("container").innerHTML+='<line id="id0'+i+'" x1="'+temp.x+'" y1="'+temp.y+'" x2="'+x+'" y2="'+y+'" style="stroke:rgb(132, 0, 255);stroke-width:2" />';
+                temp.x=x;
+                temp.y=y;
+                i++;
+            }
+        }
+        
+        function reset(){
+            window.document.getElementById("container").innerHTML="";
+            temp.x=0, temp.y=0, i=0, s=0;
+        } 
+
+        function deletePrevLines(j){
+            let element = document.getElementById("id"+(s-1)+''+j);
+            element.parentNode.removeChild(element);
+        }
+
+        function smoothen(){
+            s++
+            for(j=0; j<(i+s*i-1); j++){
+                p1.x = parseInt(window.document.getElementById("id"+(s-1)+''+j).getAttribute("x1"));
+                p4.x = parseInt(window.document.getElementById("id"+(s-1)+''+j).getAttribute("x2"));
+                p1.y = parseInt(window.document.getElementById("id"+(s-1)+''+j).getAttribute("y1"));
+                p4.y = parseInt(window.document.getElementById("id"+(s-1)+''+j).getAttribute("y2"));
+                mid = point.getMidpoint(p1, p4);
+                p2 = point.getMidpoint(p1, mid);
+                p3 = point.getMidpoint(mid, p4);
+                //Individually identify the lines created
+                if(j!=0)
+                    window.document.getElementById("container").innerHTML+='<line id="id'+s+''+j+'" x1="'+temp.x+'" y1="'+temp.y+'" x2="'+p2.x+'" y2="'+p2.y+'" style="stroke:orange;stroke-width:3" />'
+                window.document.getElementById("container").innerHTML+='<line id="id'+s+''+j+'" x1="'+p2.x+'" y1="'+p2.y+'" x2="'+p3.x+'" y2="'+p3.y+'" style="stroke:orange;stroke-width:3" />';
+                temp = p3;
+                deletePrevLines(j);
+            }
+        }
+    </script>
+</head>
+<body align="center">
+    <br /><br />
+    <table align="center">
+        <tr>
+            <td align="center">
+                <svg id="container" width="1000" height="700" enable-background="new 0 0 512 512" onclick="clicked(evt)">
+                </svg>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <button type="button" onclick="reset()">Reset</button>
+    <button type="button" onclick="smoothen()">Smoothen</button>
+</body>
+</html>
